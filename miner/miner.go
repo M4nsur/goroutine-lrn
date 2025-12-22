@@ -9,33 +9,34 @@ import (
 
 func Miner(ctx context.Context, wg *sync.WaitGroup, transferPoint chan<- int, n int, power int) {
 	defer wg.Done()
-	select {
-	case <- ctx.Done():
-		return 
-	default:
-		for {
-			fmt.Println("Miner:", n, "start work")
+	for {
+		select {
+		case <- ctx.Done():
+		fmt.Println("Miner (number):", n, "Finish")
+			return 
+		default:
+			fmt.Println("Miner (number):", n, "Start work")
 			time.Sleep(1 * time.Second)
-			fmt.Println("Miner:", n, "mined  coal", power)
+			fmt.Println("Miner (number):", n, "Mined  coal", power)
 			transferPoint <- power
-			fmt.Println("Miner:", n, "passed coal to transferPoint", power)
+			fmt.Println("Miner (number):", n, "Passed coal to transferPoint", power)
 		}
 	}
 }
 
 
 func MinerPool(ctx context.Context, minerCount int) <-chan int {
-	transferCoal := make(chan int)
+	coalTransferPoint := make(chan int)
 	wg := &sync.WaitGroup{}
 	for i := range minerCount {
 		wg.Add(1)
-		go Miner(ctx, wg, transferCoal, i, i*10)
+		go Miner(ctx, wg, coalTransferPoint, i, i*10)
 	}
 	
 	go func() {
 		wg.Wait()
-		close(transferCoal)
+		close(coalTransferPoint)
 	}()
 
-	return transferCoal
+	return coalTransferPoint
 }
